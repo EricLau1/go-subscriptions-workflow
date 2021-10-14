@@ -1,4 +1,4 @@
-package rules
+package shared
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 
 const (
 	DefaultPrice      = 50.0
-	DefaultExpiration = time.Minute
+	DefaultExpiration = time.Second * 20
 )
 
 var (

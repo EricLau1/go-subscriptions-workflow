@@ -11,6 +11,7 @@ import (
 	"go-subscriptions-workflow/services/subscriptions/shared"
 	userssvc "go-subscriptions-workflow/services/users/service"
 	"go-subscriptions-workflow/util"
+	"go.temporal.io/sdk/client"
 	"log"
 	"time"
 )
@@ -57,11 +58,17 @@ func main() {
 
 	consumer := rmqConn.NewConsumer()
 
+	temporalClient, err := client.NewClient(client.Options{})
+	util.PanicOnError(err)
+	defer temporalClient.Close()
+
 	usersService := userssvc.NewUsersService(dbConn)
-	subscriptionsService := service.NewSubscriptionsServiceServer(dbConn, usersService)
+	subscriptionsService := service.NewSubscriptionsServiceServer(dbConn, usersService, temporalClient)
 	handlers.Register(subscriptionsService, consumer)
 
 	log.Println("subscriptions service is running...")
+
+	go service.Worker(temporalClient, subscriptionsService)
 
 	err = consumer.Listen(context.Background(), &rmq.ConsumerOptions{
 		QueueName: shared.QueueName,

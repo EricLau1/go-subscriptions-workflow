@@ -24,7 +24,8 @@ func (h *subscriptionsHandlers) HandleStartSubscription(ctx context.Context, dat
 	if err != nil {
 		return err
 	}
-	return h.svc.Start(ctx, &req)
+	_, err = h.svc.Start(ctx, &req)
+	return err
 }
 
 func (h *subscriptionsHandlers) HandleCancelSubscription(ctx context.Context, data []byte) error {
@@ -33,5 +34,6 @@ func (h *subscriptionsHandlers) HandleCancelSubscription(ctx context.Context, da
 	if err != nil {
 		return err
 	}
-	return h.svc.Cancel(ctx, &req)
+	_, err = h.svc.Cancel(ctx, &req)
+	return err
 }
