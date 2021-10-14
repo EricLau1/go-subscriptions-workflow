@@ -61,3 +61,26 @@ func NewState(subscription *types.SubscriptionOutput) SubscriptionState {
 	}
 	return state
 }
+
+func (s *SubscriptionState) Out() *types.SubscriptionOutput {
+	out := &types.SubscriptionOutput{
+		ID:          s.ID,
+		UserID:      s.UserID,
+		Price:       s.Price,
+		Activations: s.Activations,
+		ActivatedAt: s.ActivatedAt,
+		ExpiresAt:   s.ExpiresAt,
+		Canceled:    s.Canceled,
+		CanceledAt:  s.CanceledAt,
+		Disabled:    s.Disabled,
+		DisabledAt:  s.DisabledAt,
+		CreatedAt:   s.CreatedAt,
+		UpdatedAt:   s.UpdatedAt,
+	}
+	out.Features = make([]*types.FeatureOutput, 0, len(out.Features))
+	for index := range s.Features {
+		feature := &types.FeatureOutput{Name: s.Features[index].Name}
+		out.Features = append(out.Features, feature)
+	}
+	return out
+}

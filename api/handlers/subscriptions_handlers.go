@@ -23,6 +23,7 @@ func RegisterSubscriptionsHandlers(subsClient service.SubscriptionsClient, produ
 	app.Post("/subscriptions", h.PostStartSubscription)
 	app.Put("/subscriptions/:id/cancel", h.PutCancelSubscription)
 	app.Get("/subscriptions", h.GetSubscriptions)
+	app.Get("/subscriptions/:id", h.GetSubscription)
 }
 
 func (h *subscriptionsHandlers) PostStartSubscription(ctx *fiber.Ctx) error {
@@ -85,3 +86,17 @@ func (h *subscriptionsHandlers) GetSubscriptions(ctx *fiber.Ctx) error {
 		Status(http.StatusOK).
 		JSON(out)
 }
+
+func (h *subscriptionsHandlers) GetSubscription(ctx *fiber.Ctx) error {
+	req := &types.GetSubscriptionRequest{ID: ctx.Params("id")}
+	out, err := h.subsClient.GetSubscription(ctx.Context(), req)
+	if err != nil {
+		return ctx.
+			Status(http.StatusInternalServerError).
+			JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.
+		Status(http.StatusOK).
+		JSON(out)
+}
+

@@ -14,6 +14,7 @@ import (
 	subssvc "go-subscriptions-workflow/services/subscriptions/service"
 	userssvc "go-subscriptions-workflow/services/users/service"
 	"go-subscriptions-workflow/util"
+	"go.temporal.io/sdk/client"
 	"log"
 	"time"
 )
@@ -44,13 +45,18 @@ func main() {
 	defer rmqConn.Close()
 	log.Println("rabbitmq connected!")
 
+	temporalClient, err := client.NewClient(client.Options{})
+	util.PanicOnError(err)
+	defer temporalClient.Close()
+	log.Println("temporal client connected!")
+
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(cors.New())
 
 	usersService := userssvc.NewUsersService(dbConn)
 	handlers.RegisterUsersHandlers(usersService, app)
-	subsClient := subssvc.NewSubscriptionsClient(dbConn, usersService)
+	subsClient := subssvc.NewSubscriptionsClient(dbConn, usersService, temporalClient)
 	handlers.RegisterSubscriptionsHandlers(subsClient, rmqConn.NewProducer(), app)
 
 	err = app.Listen(fmt.Sprintf(":%d", port))

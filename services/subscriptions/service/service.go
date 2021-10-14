@@ -17,6 +17,7 @@ import (
 
 type SubscriptionsClient interface {
 	GetSubscriptions(ctx context.Context) ([]*types.SubscriptionOutput, error)
+	GetSubscription(ctx context.Context, req *types.GetSubscriptionRequest) (*types.SubscriptionOutput, error)
 }
 
 type SubscriptionsServiceServer interface {
@@ -25,6 +26,7 @@ type SubscriptionsServiceServer interface {
 	Cancel(ctx context.Context, req *types.CancelSubscriptionRequest) (*types.SubscriptionOutput, error)
 	Disable(ctx context.Context, req *types.DisableSubscriptionRequest) (*types.SubscriptionOutput, error)
 	GetSubscriptions(ctx context.Context) ([]*types.SubscriptionOutput, error)
+	GetSubscription(ctx context.Context, req *types.GetSubscriptionRequest) (*types.SubscriptionOutput, error)
 }
 
 type subscriptionsService struct {
@@ -33,10 +35,11 @@ type subscriptionsService struct {
 	temporalClient     client.Client
 }
 
-func NewSubscriptionsClient(dbConn db.Connection, usersService userssvc.UsersService) SubscriptionsClient {
+func NewSubscriptionsClient(dbConn db.Connection, usersService userssvc.UsersService, temporalClient client.Client) SubscriptionsClient {
 	return &subscriptionsService{
 		usersService:       usersService,
 		subscriptionsStore: store.NewSubscriptionsStore(dbConn.DB()),
+		temporalClient:     temporalClient,
 	}
 }
 
@@ -227,4 +230,17 @@ func (s *subscriptionsService) GetSubscriptions(ctx context.Context) ([]*types.S
 		out = append(out, subscriptions[index].Out())
 	}
 	return out, nil
+}
+
+func (s *subscriptionsService) GetSubscription(ctx context.Context, req *types.GetSubscriptionRequest) (*types.SubscriptionOutput, error) {
+	res, err := s.temporalClient.QueryWorkflow(ctx, req.ID, "", QuerySubscriptionState, nil)
+	if err != nil {
+		return nil, err
+	}
+	var state SubscriptionState
+	err = res.Get(&state)
+	if err != nil {
+		return nil, err
+	}
+	return state.Out(), nil
 }

@@ -72,3 +72,7 @@ type CancelSubscriptionRequest struct {
 type DisableSubscriptionRequest struct {
 	ID string `json:"id"`
 }
+
+type GetSubscriptionRequest struct {
+	ID string `json:"id"`
+}

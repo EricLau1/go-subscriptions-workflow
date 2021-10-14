@@ -61,6 +61,7 @@ func main() {
 	temporalClient, err := client.NewClient(client.Options{})
 	util.PanicOnError(err)
 	defer temporalClient.Close()
+	log.Println("temporal client connected!")
 
 	usersService := userssvc.NewUsersService(dbConn)
 	subscriptionsService := service.NewSubscriptionsServiceServer(dbConn, usersService, temporalClient)
